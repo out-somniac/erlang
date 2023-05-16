@@ -121,7 +121,10 @@ get_correlation(Type_1, Type_2, Monitor) ->
     Diffs = [M1#measurement.value - M2#measurement.value ||
         M1 <- Monitor#monitor.measurements,
         M2 <- Monitor#monitor.measurements,
-        M1#measurement.datetime == M2#measurement.datetime],
+        M1#measurement.datetime == M2#measurement.datetime,
+        M1#measurement.type == Type_1,
+        M2#measurement.type == Type_2
+    ],
     case erlang:length(Diffs) of
         0 -> {error, "Too few element to compute correlation"};
         _ -> lists:sum(Diffs) / erlang:length(Diffs)
