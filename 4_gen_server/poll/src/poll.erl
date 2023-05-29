@@ -7,25 +7,27 @@
 
 -behaviour(gen_server).
 
+
+
 %% API
--export([start_link/0, step/0, read/0, close/0, crash/0]).
--export([init/1,handle_call/3,handle_cast/2,terminate/2]).
- 
+-export([start_link/0, close/0, crash/0]).
+-export([init/1, handle_call/3, handle_cast/2, terminate/2]).
+-export([read/0, add_station/2]).
+
 %% START %%
-start_link()   -> gen_server:start_link({local,?MODULE},?MODULE,2,[]).
-init(N)        -> {ok,N}.
+start_link()   -> gen_server:start_link({local,?MODULE}, ?MODULE, pollution:create_monitor(), []).
+init(M)        -> {ok, M}.
  
-%% INTERFEJS KLIENT -> SERWER %%
-step()      -> gen_server:cast(?MODULE,step).
-read()      -> gen_server:call(?MODULE,read).
-close()     -> gen_server:call(?MODULE,terminate).
-crash()     -> gen_server:cast(?MODULE,crash).
+%% API %%
+read() -> gen_server:call(?MODULE, read).
+add_station(Name, Point) -> gen_server:cast(?MODULE, {add_station, Name, Point}).
+close()     -> gen_server:call(?MODULE, terminate).
+crash()     -> gen_server:cast(?MODULE, crash).
  
 %% OBSŁUGA WIADOMOŚCI %%
-handle_cast(step, N) -> {noreply, N*N};
-handle_cast(crash, N) -> no:exist(), {noreply, N}.
+handle_cast({add_station, Name, Point}, M) -> {noreply, pollution:add_station(Name, Point, M)}.
  
-handle_call(read,_From, N)      -> {reply, N, N};
+handle_call(read, _From, M)      -> {reply, M, M};
 handle_call(terminate,_From,N) -> {stop, normal, ok, N}.
  
 terminate(normal, N) -> io:format("The number is: ~B~nBye.~n",[N]), ok.
