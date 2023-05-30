@@ -5,6 +5,7 @@
   add_station/3,
   add_value/5,
   remove_value/4,
+  get_station/2,
   get_one_value/4,
   get_station_mean/3,
   get_daily_mean/3,
@@ -21,7 +22,7 @@ is_in_monitor(Name, Point, Monitor) -> lists:any(fun(S) -> S#station.name == Nam
 add_station(Name, Point, Monitor) ->
   case is_in_monitor(Name, Point, Monitor) of
     true ->
-      {error, "Station alread in monitor"};
+      Monitor;
     false ->
       Monitor#monitor{
         stations = [#station{name = Name, point = Point} | Monitor#monitor.stations]
@@ -45,7 +46,7 @@ add_value(StationIdentifier, Datetime, Type, Value, Monitor) ->
     {error, message} -> {error, message};
     Station ->  case lists:any(fun(M) -> M#measurement.station == Station andalso M#measurement.datetime == Datetime andalso M#measurement.type == Type end, Monitor#monitor.measurements) of
             true ->
-              {error, "Measurement already in station."};
+              Monitor;
             false ->
               Monitor#monitor{measurements = [#measurement{station = Station, datetime = Datetime, type = Type, value = Value} | Monitor#monitor.measurements]}
           end
@@ -53,7 +54,7 @@ add_value(StationIdentifier, Datetime, Type, Value, Monitor) ->
 
 remove_value(StationIdentifier, Datetime, Type, Monitor) ->
   case get_station(StationIdentifier, Monitor#monitor.stations) of
-    {error, message} -> {error, message};
+    {error, message} -> Monitor;
     Station -> case lists:any(fun(R) -> R#measurement.station == Station andalso
                                         R#measurement.datetime == Datetime andalso
                                         R#measurement.type == Type end,

@@ -12,7 +12,7 @@
 %% API
 -export([start_link/0, init/1, handle_call/3, handle_cast/2]).
 -export([add_station/2, add_value/4, remove_value/3]).
--export([get_station/1, get_station_mean/2, get_daily_mean/2, get_correlation/2]).
+-export([greet/0, read/0, get_station/1, get_station_mean/2, get_daily_mean/2, get_correlation/2]).
 
 %% START %%
 start_link()   -> gen_server:start_link({local,?MODULE}, ?MODULE, pollution:create_monitor(), []).
@@ -30,6 +30,12 @@ remove_value(StationIdentifier, Datetime, Type) ->
 
 
 % %% ASYNCHRONOUS API %%
+greet() ->
+    gen_server:call(?MODULE, greet).
+
+read() -> 
+    gen_server:call(?MODULE, read).
+
 get_station(StationIdentifier) ->
     gen_server:call(?MODULE, {get_station, StationIdentifier}).
 
@@ -54,6 +60,12 @@ handle_cast({remove_value, StationIdentifier, Datetime, Type}, M) ->
     {noreply, pollution:remove_value(StationIdentifier, Datetime, Type, M)}.
 
 %% CALLS %%
+handle_call(greet, _From, M) ->
+    {reply, "Hello from server!", M};
+
+handle_call(read, _From, M) -> 
+    {reply, M, M};
+
 handle_call({get_station, StationIdentifier}, _From, M) -> 
     {reply, pollution:get_station(StationIdentifier, M#monitor.stations), M};
 
